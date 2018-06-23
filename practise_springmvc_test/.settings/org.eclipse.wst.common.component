@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?><project-modules id="moduleCoreId" project-version="1.5.0">
+    <wb-module deploy-name="practise_springmvc_test">
+        <wb-resource deploy-path="/WEB-INF/classes" source-path="/src/java"/>
+        <wb-resource deploy-path="/WEB-INF/classes" source-path="/src/config"/>
+        <wb-resource deploy-path="/WEB-INF/classes" source-path="/src/decompile"/>
+        <wb-resource deploy-path="/WEB-INF/classes" source-path="/src/resource"/>
+        <wb-resource deploy-path="/" source-path="/practisemvctest"/>
+        <property name="java-output-path" value="/practise_springmvc_test/practisetest/WEB-INF/classes"/>
+        <property name="context-root" value="/practise_mvc_test"/>
+    </wb-module>
+</project-modules>

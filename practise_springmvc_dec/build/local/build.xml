@@ -1,0 +1,603 @@
+<?xml version="1.0" encoding="UTF-8"?>
+	<project name="education_ssi" default="transaction_tomcat" basedir=".">
+		<!--==============================================init setting==============================================-->
+		<!--get current time-->
+		<tstamp>
+			<format property="DSTAMP" pattern="yyyyMMdd" locale="zh" />
+			<format property="TSTAMP" pattern="HHmmss" locale="zh" />
+		</tstamp>
+		
+		<!-- loading property files -->
+		<property file="build1.properties" />
+		
+		<!-- library setting -->
+		<path id="buildpath">
+			<fileset dir="${lib_svnant}">
+				<include name="**/*.jar" />
+			</fileset>
+			<fileset dir="${lib_j2ee}">
+				<include name="**/*.jar" />
+			</fileset>
+			<fileset dir="${lib_project_basic}">
+				<include name="**/*.jar" />
+			</fileset>
+			<fileset dir="${lib_jdk}">
+				<include name="**/*.jar" />
+			</fileset>
+		</path>
+		
+		<path id="buildpath_jdt">
+			<fileset dir="${lib_project_basic}">
+				<include name="**/*.jar" />
+			</fileset>
+			<fileset dir="${lib_svnant}">
+				<include name="**/*.jar" />
+			</fileset>
+		</path>
+				
+		<path id="classpath_svnant">
+			<fileset dir="${lib_svnant}">
+				<include name="**/*.jar" />
+			</fileset>
+		</path>
+		
+		<!-- svn setting -->
+		<typedef resource="org/tigris/subversion/svnant/svnantlib.xml" classpathref="classpath_svnant" />
+		<svnSetting id="svn_settings" javahl="${flag_no}" svnkit="${flag_yes}" username="${svn_username}" password="${svn_password}" failonerror="${flag_yes}" />
+				
+		<!-- init basic folders -->
+		<target name="init_basic">
+			<echo>deleting all files ......</echo>
+			<delete dir="${path_workspace}" failonerror="${flag_no}" deleteonexit="${flag_yes}" />
+			
+			<echo>creating folders ......</echo>
+			<mkdir dir="${path_workspace}"/>
+			<mkdir dir="${save_war}"/>
+		</target>
+		
+		<!-- init svn folders -->
+		<target name="init_svn">
+			<echo message="${svn_username}" />
+			<echo message="${svn_password}" />
+			<echo message="${name_project}" />
+			<echo message="${name_contextroot}" />
+			<echo message="${file_compare}" />
+
+			<echo>deleting all files ......</echo>
+			<delete dir="${path_workspace}" failonerror="${flag_no}" deleteonexit="${flag_yes}" />
+			
+			<echo>creating folders ......</echo>
+			<mkdir dir="${path_workspace}"/>
+			<mkdir dir="${save_war}"/>
+		</target>
+		
+		<!-- init folders -->
+		<target name="folders_init">
+			<echo>initing folders ......</echo>
+			
+			<antcall target="init_basic"/>
+			<!--<antcall target="init_svn"/>-->
+		</target>		
+		<!--==============================================get project source from svn server==============================================-->
+		<!-- that is to test i svnant is available-->
+		<target name="svnant_test">
+			<echo>run task test svnant is available ......</echo>
+			<available resource="org/tigris/subversion/svnant/svnantlib.xml" classpathref="classpath_svnant" property="available.svnant" />
+			<echo>SVN-ANT is available = ${available.svnant}</echo>
+		</target>
+		
+		<!-- compare svn_version -->
+		<target name="diff">
+			<echo>compareing svn_version ......</echo>
+			<svn refid="svn_settings">
+				<diffSummarize oldUrl="${svn_old_url}" oldTargetRevision="${svn_old_version}" newUrl="${svn_new_url}" newTargetRevision="${svn_new_version}" outFile="${file_compare}" recurse="${flag_yes}" />
+			</svn>
+		</target>
+		
+		<!-- checkout and download new project source from svn server -->
+		<target name="checkload_newsvn">
+			<echo>checkout and download new project code ${svn_new_url} - ${svn_new_version} to ${pro_new}</echo>
+			<svn refid="svn_settings">
+				<export srcUrl="${svn_new_url}" destPath="${pro_new}" revision="${svn_new_version}" force="${flag_yes}"/>
+			</svn>
+		</target>
+		
+		<!-- checkout and download old project source from svn server -->
+		<target name="checkload_oldsvn">
+			<echo>checkout and download old project code ${svn_old_url} - ${svn_old_version} to ${pro_old}</echo>
+			<antcall target="checkload_newsvn">
+				<param name="svn_new_version" value="${svn_old_version}"/>
+				<param name="svn_new_url" value="${svn_old_url}"/>
+				<param name="pro_new" value="${pro_old}"/>
+				<param name="flag_yes" value="${flag_yes}"/>
+			</antcall>
+		</target>
+		
+		<!--==============================================copy files for compile==============================================-->
+
+		<!-- copy basic project otherfiles -->
+		<target name="copyotherfiles">	
+			<copy todir="${save_file1}" failonerror="${flag_no}">
+				<fileset dir="${src_file1}" includes="**"/>
+			</copy>
+			<copy todir="${save_file2}" failonerror="${flag_no}">
+				<fileset dir="${src_file2}" includes="**"/>
+			</copy>
+			<copy todir="${save_file3}" failonerror="${flag_no}">
+				<fileset dir="${src_file3}" includes="**"/>
+			</copy>
+			<copy todir="${save_file4}" failonerror="${flag_no}">
+				<fileset dir="${src_file4}" includes="**"/>
+			</copy>
+			<copy todir="${save_file5}" failonerror="${flag_no}">
+				<fileset dir="${src_file5}" includes="**"/>
+			</copy>
+			<copy todir="${save_file6}" failonerror="${flag_no}">
+				<fileset dir="${src_file6}" includes="**"/>
+			</copy>
+		</target>
+		
+		<!-- copy new project otherfiles -->
+		<target name="copyotherfiles_new">	
+			<echo>copying new project other files ......</echo>
+			<antcall target="copyotherfiles">
+				<param name="src_file1" value="${pro_new}/${name_file1}" />
+				<param name="save_file1" value="${save_war}/war_new/otherfiles/${name_file1}" />
+				<param name="src_file2" value="${pro_new}/${name_file2}" />
+				<param name="save_file2" value="${save_war}/war_new/otherfiles/${name_file2}" />
+				<param name="src_file3" value="${pro_new}/${name_file3}" />
+				<param name="save_file3" value="${save_war}/war_new/otherfiles/${name_file3}" />
+				<param name="src_file4" value="${pro_new}/${name_file4}" />
+				<param name="save_file4" value="${save_war}/war_new/otherfiles/${name_file4}" />
+				<param name="src_file5" value="${pro_new}/${name_file5}" />
+				<param name="save_file5" value="${save_war}/war_new/otherfiles/${name_file5}" />
+				<param name="src_file6" value="${pro_new}/${name_file6}" />
+				<param name="save_file6" value="${save_war}/war_new/otherfiles/${name_file6}" />
+			</antcall>
+		</target>
+		
+		<!-- copy old project otherfiles -->
+		<target name="copyotherfiles_old">	
+			<echo>copying old project other files ......</echo>
+			<antcall target="copyotherfiles">
+				<param name="src_file1" value="${pro_old}/${name_file1}" />
+				<param name="save_file1" value="${save_war}/war_old/otherfiles/${name_file1}" />
+				<param name="src_file2" value="${pro_old}/${name_file2}" />
+				<param name="save_file2" value="${save_war}/war_old/otherfiles/${name_file2}" />
+				<param name="src_file3" value="${pro_old}/${name_file3}" />
+				<param name="save_file3" value="${save_war}/war_old/otherfiles/${name_file3}" />
+				<param name="src_file4" value="${pro_old}/${name_file4}" />
+				<param name="save_file4" value="${save_war}/war_old/otherfiles/${name_file4}" />
+				<param name="src_file5" value="${pro_old}/${name_file5}" />
+				<param name="save_file5" value="${save_war}/war_old/otherfiles/${name_file5}" />
+				<param name="src_file6" value="${pro_old}/${name_file6}" />
+				<param name="save_file6" value="${save_war}/war_old/otherfiles/${name_file6}" />
+			</antcall>
+		</target>
+				
+		<!-- copy project otherfiles -->
+		<target name="otherfiles_copy">
+			<echo>copying basic project other files ......</echo>
+			<antcall target="copyotherfiles"/>
+			<!--
+			<antcall target="copyotherfiles_new"/>
+			<antcall target="copyotherfiles_old"/>
+			-->
+		</target>
+		
+		<!-- copy basic project jsp -->
+		<target name="copyjsp">
+			<copy todir="${save_jsp}">
+				<fileset dir="${src_webapp}">
+					<include name="**/*"/>
+					<exclude name="WEB-INF/classes/**/*"/>
+				</fileset>
+			</copy>
+		</target>
+		
+		<!-- copy new project jsp -->
+		<target name="copyjsp_new">	
+			<echo>copying new project jsp ......</echo>
+			<antcall target="copyjsp">
+				<param name="src_webapp" value="${pro_new}/${name_contextroot}" />
+				<param name="save_jsp" value="${save_war}/war_new/${name_war}" />
+			</antcall>
+		</target>
+		
+		<!-- copy old project jsp -->
+		<target name="copyjsp_old">	
+			<echo>copying old project jsp ......</echo>
+			<antcall target="copyjsp">
+				<param name="src_webapp" value="${pro_old}/${name_contextroot}" />
+				<param name="save_jsp" value="${save_war}/war_old/${name_war}" />
+			</antcall>
+		</target>
+		
+		<!-- copy project jsp -->
+		<target name="jsp_copy">
+			<echo>copying basic project jsp ......</echo>
+			<antcall target="copyjsp"/>
+			<!--
+			<antcall target="copyjsp_new"/>
+			<antcall target="copyjsp_old"/>
+			-->
+		</target>
+		
+		<!-- copy basic project resource -->
+		<target name="copyresource">
+			<copy todir="${save_resource}" failonerror="${flag_no}">
+				<fileset dir="${src_resource1}" includes="**"/>
+			</copy>
+			<copy todir="${save_resource}" failonerror="${flag_no}">
+				<fileset dir="${src_resource2}" includes="**"/>
+			</copy>
+			<copy todir="${save_resource}" failonerror="${flag_no}">
+				<fileset dir="${src_resource3}" includes="**"/>
+			</copy>
+			<copy todir="${save_resource}" failonerror="${flag_no}">
+				<fileset dir="${src_resource4}" includes="**"/>
+			</copy>
+			<copy todir="${save_resource}" failonerror="${flag_no}">
+				<fileset dir="${src_resource5}" includes="**"/>
+			</copy>
+			<copy todir="${save_resource}" failonerror="${flag_no}">
+				<fileset dir="${src_resource6}" includes="**"/>
+			</copy>
+		</target>
+		
+		<!-- copy new project resource -->
+		<target name="copyresource_new">	
+			<echo>copying new project resource ......</echo>
+			<antcall target="copyresource">
+				<param name="src_resource1" value="${pro_new}/${name_resource1}" />
+				<param name="src_resource2" value="${pro_new}/${name_resource2}" />
+				<param name="src_resource3" value="${pro_new}/${name_resource3}" />
+				<param name="src_resource4" value="${pro_new}/${name_resource4}" />
+				<param name="src_resource5" value="${pro_new}/${name_resource5}" />
+				<param name="src_resource6" value="${pro_new}/${name_resource6}" />
+				<param name="save_resource" value="${save_war}/war_new/${name_war}/WEB-INF/classes" />
+			</antcall>
+		</target>
+		
+		<!-- copy old project resource -->
+		<target name="copyresource_old">	
+			<echo>copying old project resource ......</echo>
+			<antcall target="copyresource">
+				<param name="src_resource1" value="${pro_old}/${name_resource1}" />
+				<param name="src_resource2" value="${pro_old}/${name_resource2}" />
+				<param name="src_resource3" value="${pro_old}/${name_resource3}" />
+				<param name="src_resource4" value="${pro_old}/${name_resource4}" />
+				<param name="src_resource5" value="${pro_old}/${name_resource5}" />
+				<param name="src_resource6" value="${pro_old}/${name_resource6}" />
+				<param name="save_resource" value="${save_war}/war_old/${name_war}/WEB-INF/classes" />
+			</antcall>
+		</target>
+		
+		<!-- copy project resource -->
+		<target name="resource_copy">
+			<echo>copying basic project resource ......</echo>
+			<antcall target="copyresource"/>
+			<!--
+			<antcall target="copyresource_new"/>
+			<antcall target="copyresource_old"/>
+			-->
+		</target>
+		<!--==============================================compile java files==============================================-->
+		<!-- javac compile basic project java files -->
+		<target name="compilesource">			
+			<javac srcdir="${save_resource}" destdir="${save_resource}" debug="${switch_yes}" failonerror="${flag_yes}" debuglevel="${flag_yes}" encoding="${type_encoding}">
+				<classpath refid="buildpath" />
+			</javac>
+		</target>
+		
+		<!-- javac compile new project java files -->
+		<target name="compilesource_new">			
+			<echo>compiling new project java files ......</echo>
+			<antcall target="compilesource">
+				<param name="flag_yes" value="${flag_yes}"/>
+				<param name="switch_yes" value="${switch_yes}"/>
+				<param name="type_encoding" value="${type_encoding}"/>
+				<param name="save_resource" value="${save_war}/war_new/${name_war}/WEB-INF/classes"/>
+			</antcall>
+		</target>
+		
+		<!-- javac compile old project java files -->
+		<target name="compilesource_old">			
+			<echo>compiling old project java files ......</echo>
+			<antcall target="compilesource">
+				<param name="flag_yes" value="${flag_yes}"/>
+				<param name="switch_yes" value="${switch_yes}"/>
+				<param name="type_encoding" value="${type_encoding}"/>
+				<param name="save_resource" value="${save_war}/war_old/${name_war}/WEB-INF/classes"/>
+			</antcall>
+		</target>
+			
+		<!-- javac compile project java files -->
+		<target name="resource_compile">
+			<echo>compiling basic project java files ......</echo>
+			<antcall target="compilesource"/>
+			<!--
+			<antcall target="compilesource_new"/>
+			<antcall target="compilesource_old"/>
+			-->
+		</target>
+		
+		<!-- JDT compile basic project java files -->
+		<target name="jdtresource">	
+			<javac compiler="${compile_jdt}" srcdir="${save_resource}" destdir="${save_resource}" debug="${switch_yes}" failonerror="${flag_yes}" debuglevel="${flag_yes}" encoding="${type_encoding}">
+				<classpath refid="buildpath" />
+			</javac>
+		</target>
+		
+		<!-- JDT compile new project java files -->
+		<target name="jdtresource_new">			
+			<echo>compiling new project java files by JDT ......</echo>
+			<antcall target="jdtresource">
+				<param name="flag_yes" value="${flag_yes}"/>
+				<param name="switch_yes" value="${switch_yes}"/>
+				<param name="type_encoding" value="${type_encoding}"/>
+				<param name="save_resource" value="${save_war}/war_new/${name_war}/WEB-INF/classes"/>
+			</antcall>
+		</target>
+		
+		<!-- JDT compile old project java files -->
+		<target name="jdtresource_old">			
+			<echo>compiling old project java files by JDT ......</echo>
+			<antcall target="jdtresource">
+				<param name="flag_yes" value="${flag_yes}"/>
+				<param name="switch_yes" value="${switch_yes}"/>
+				<param name="type_encoding" value="${type_encoding}"/>
+				<param name="save_resource" value="${save_war}/war_old/${name_war}/WEB-INF/classes"/>
+			</antcall>
+		</target>
+
+		<!-- JDT compile project java files -->
+		<target name="resource_jdt">
+			<echo>compiling basic project java files by JDT ......</echo>
+			<antcall target="jdtresource"/>
+			<!--
+			<antcall target="jdtresource_new"/>
+			<antcall target="jdtresource_old"/>
+			-->
+		</target>
+		<!--==============================================clean java files==============================================-->
+		<!-- clean project java files -->
+		<target name="cleanjava">
+			<echo>cleaning java files ......</echo>
+			<delete includeEmptyDirs="${flag_no}" failonerror="${flag_no}" deleteonexit="${flag_yes}">
+				<fileset dir="${save_resource}" includes="**/*.java"/>
+				<fileset dir="${save_war}/war_new/${name_war}/WEB-INF/classes" includes="**/*.java"/>
+				<fileset dir="${save_war}/war_old/${name_war}/WEB-INF/classes" includes="**/*.java"/>
+			</delete>
+		</target>
+		<!--==============================================package classes to jar==============================================-->
+		<!-- package basic project classes to jar -->
+		<target name="packagejar">
+			<jar destfile="${save_webapp}/WEB-INF/lib/${name_project}.jar" level="9" compress="${flag_yes}" encoding="${type_encoding}" basedir="${save_resource}">
+				<manifest>
+					<attribute name="Implementation-Version" value="Version: 2.2" />
+				</manifest>
+			</jar>
+			<delete includeEmptyDirs="${flag_yes}">
+				<fileset dir="${save_resource}" includes="**"/>
+			</delete>
+		</target>
+		
+		<!-- package new project classes to jar -->
+		<target name="packagejar_new">			
+			<echo>packaging new project classes to jar ......</echo>
+			<antcall target="packagejar">
+				<param name="flag_yes" value="${flag_yes}" />
+				<param name="type_encoding" value="${type_encoding}" />
+				<param name="name_project" value="${name_project}" />
+				<param name="save_webapp" value="${save_war}/war_new/${name_war}"/>
+				<param name="save_resource" value="${save_war}/war_new/${name_war}/WEB-INF/classes" />
+			</antcall>
+		</target>
+		
+		<!-- package old project classes to jar -->
+		<target name="packagejar_old">			
+			<echo>packaging old project classes to jar ......</echo>
+			<antcall target="packagejar">
+				<param name="flag_yes" value="${flag_yes}" />
+				<param name="type_encoding" value="${type_encoding}" />
+				<param name="name_project" value="${name_project}" />
+				<param name="save_webapp" value="${save_war}/war_old/${name_war}"/>
+				<param name="save_resource" value="${save_war}/war_old/${name_war}/WEB-INF/classes" />
+			</antcall>
+		</target>
+
+		<!-- package project classes to jar -->
+		<target name="jar_package">
+			<echo>packaging basic project classes to jar ......</echo>
+			<antcall target="packagejar"/>
+			<!--
+			<antcall target="packagejar_new"/>
+			<antcall target="packagejar_old"/>
+			-->
+		</target>
+		<!--==============================================package all files to war==============================================-->
+		<!-- package basic project files to war -->
+		<!--<target name="packagewar">
+			<war destfile="${save_webapp}.war" basedir="${save_webapp}" duplicate="preserve" compress="${flag_yes}" webxml="${save_webapp}/WEB-INF/web.xml"/>
+		</target>-->
+		
+		<target name="packagewar">
+			<war destfile="${save_webapp}.war" duplicate="preserve" webxml="${save_webapp}/WEB-INF/web.xml" compress="true">
+				<fileset dir="${save_webapp}" excludes="**/web.xml"/>
+				<classes dir="${save_webapp}/WEB-INF/classes">
+					<include name="**/*"/>
+				</classes>
+				<lib dir="${save_webapp}/WEB-INF/lib" >
+					<include name="*.jar"/>
+					<exclude name="junit*.jar"/>
+					<exclude name="servlet*.jar"/>
+					<exclude name="log4j*.jar"/>
+				</lib>
+			</war>
+		</target>
+		
+		<!-- package new project files to war -->
+		<target name="packagewar_new">			
+			<echo>packaging new project files to war .......</echo>
+			<antcall target="packagewar">
+				<param name="flag_yes" value="${flag_yes}" />
+				<param name="save_webapp" value="${save_war}/war_new/${name_war}"/>
+			</antcall>
+		</target>
+		
+		<!-- package old project files to war -->
+		<target name="packagewar_old">			
+			<echo>packaging old project files to war .......</echo>
+			<antcall target="packagewar">
+				<param name="flag_yes" value="${flag_yes}" />
+				<param name="save_webapp" value="${save_war}/war_old/${name_war}"/>
+			</antcall>
+		</target>
+		
+		<!-- package project files to war -->
+		<target name="war_package">
+			<echo>packaging basic project files to war .......</echo>
+			<antcall target="packagewar"/>
+			<!--
+			<antcall target="packagewar_new"/>
+			<antcall target="packagewar_old"/>
+			-->
+		</target>		
+		<!--==============================================clean war'resource==============================================-->
+		<!-- clean war'resource -->
+		<target name="warresource_clean">
+			<echo>cleaning war'resource ......</echo>
+			<delete includeEmptyDirs="${flag_yes}" failonerror="${flag_no}" deleteonexit="${flag_yes}">
+				<fileset dir="${save_webapp}" includes="**"/>
+				<fileset dir="${save_war}/war_new/${name_war}" includes="**"/>
+				<fileset dir="${save_war}/war_old/${name_war}" includes="**"/>
+			</delete>
+		</target>
+		<!--==============================================deploy project to tomcat server==============================================-->
+		<!-- deploy init -->
+		<target name="deployinit">
+			<echo>cleaning deploy resource folders ......</echo>
+			<delete dir="${path_depoly}" failonerror="${flag_no}" deleteonexit="${flag_yes}"/>
+			<echo>cleaning deploy war ......</echo>
+			<delete file="${path_server}/webapps/${name_context}.war" failonerror="${flag_no}" deleteonexit="${flag_yes}"/>
+		</target>
+		<target name="deployinit_cresource" unless="${path_depoly}">
+			<echo>create deploy resource folders ......</echo>
+			<mkdir dir="${path_depoly}"/>
+		</target>
+		
+		<!-- deploy basic project -->
+		<target name="deploywar">
+			<antcall target="deployinit"/>
+			<copy todir="${path_server}/webapps">
+				<fileset dir="${path_warroot}">
+					<include name="${name_war}.war"/>
+				</fileset>
+			</copy>
+        </target>
+		<target name="deployresource">
+			<antcall target="deployinit"/>
+			<antcall target="deployinit_cresource"/>	
+			<copy todir="${path_depoly}">
+				<fileset dir="${save_webapp}" includes="**"/>
+			</copy>
+        </target>
+		
+		<!-- deploy new project -->
+		<target name="deploywar_new">			
+			<echo>deploying new project by war ......</echo>
+			<antcall target="deploywar">
+				<param name="path_server" value="${path_server}" />
+				<param name="path_warroot" value="${save_war}/war_new"/>
+				<param name="name_war" value="${name_war}"/>
+			</antcall>
+		</target>
+		<target name="deployresource_new">			
+			<echo>deploying new project by resource ......</echo>
+			<antcall target="deployresource">
+				<param name="path_depoly" value="${path_depoly}" />
+				<param name="save_webapp" value="${save_war}/war_new/${name_war}"/>
+			</antcall>
+		</target>
+		
+		<!-- deploy old project -->
+		<target name="deploywar_old">			
+			<echo>deploying old project by war ......</echo>
+			<antcall target="deploywar">
+				<param name="path_server" value="${path_server}" />
+				<param name="path_warroot" value="${save_war}/war_old"/>
+				<param name="name_war" value="${name_war}"/>
+			</antcall>
+		</target>
+		<target name="deployresource_old">			
+			<echo>deploying old project by resource ......</echo>
+			<antcall target="deployresource">
+				<param name="path_depoly" value="${path_depoly}" />
+				<param name="save_webapp" value="${save_war}/war_old/${name_war}"/>
+			</antcall>
+		</target>
+
+		<!-- deploy project -->
+		<target name="project_deploy">
+			<echo>deploying basic project by war ......</echo>
+			<antcall target="deploywar"/>
+			<!--
+			<echo>deploying basic project by war ......</echo>
+			<antcall target="deploywar"/>
+			<echo>deploying basic project by resource ......</echo>
+			<antcall target="deployresource"/>
+			<antcall target="deploywar_new"/>
+			<antcall target="deployresource_new"/>
+			<antcall target="deploywar_old"/>
+			<antcall target="deployresource_old"/>
+			-->
+		</target>	
+		<!--==============================================clean all tempfiles==============================================-->
+		<!-- clean all tempfiles -->
+		<target name="tempfiles_clean">
+			<echo>cleaning all tempfiles ......</echo>
+			     
+			<delete includeEmptyDirs="${flag_yes}" failonerror="${flag_no}" deleteonexit="${flag_yes}">
+				<fileset dir="${path_workspace}" includes="**"/>
+			</delete>
+        </target>
+		<!--==============================================transaction setting==============================================-->
+		<!-- execute transaction -->
+		<target name="transaction_tomcat">
+			<echo>executing transaction ......</echo>
+			
+			<antcall target="folders_init"/>
+
+			<!--
+			<antcall target="svnant_test"/>
+			<antcall target="diff"/>
+			<antcall target="checkload_newsvn"/>
+			<antcall target="checkload_oldsvn"/>
+			-->
+			<antcall target="otherfiles_copy"/>
+			<antcall target="jsp_copy"/>
+			<antcall target="resource_copy"/>
+			<antcall target="resource_compile"/>
+			<!--
+			<antcall target="resource_compile"/>
+			<antcall target="resource_jdt"/>
+			-->
+			<antcall target="cleanjava"/>
+			
+			<!--
+			<antcall target="jar_package"/>
+			-->
+			<antcall target="war_package"/>
+			<!--
+			<antcall target="warresource_clean"/>
+			-->
+			<antcall target="project_deploy"/>
+			<antcall target="tempfiles_clean"/>
+			<!--
+			<antcall target="tempfiles_clean"/>
+			-->
+        </target>
+		
+		
+	</project>
